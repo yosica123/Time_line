@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <title>Interactive Timeline Builder</title>
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('C:/Users/yosic/Downloads/bluethemeclock.webp') no-repeat center center fixed;
+      background-size: cover; 
+      color: #333;
+      transition: background 0.3s ease;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+      pointer-events: none;
+    }
+
+    header {
+      background-color: rgba(3, 169, 244, 0.8); 
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: 1px;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: pink;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #ffeb3b;
+    }
+
+    .container {
+      padding: 20px;
+      animation: fadeIn 0.8s ease-in-out;
+      background: rgba(255, 255, 255, 0.8); /* Semi-transparent background for containers */
+      border-radius: 15px;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Home Section */
+    .form-container, .timeline-container, .about-container {
+      text-align: center;
+      margin: 40px auto;
+      max-width: 900px;
+    }
+
+    .form-container input, .form-container textarea, .form-container select {
+      width: 80%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .form-container input:focus, .form-container textarea:focus, .form-container select:focus {
+      border-color: #03a9f4; /* Lighter blue */
+      outline: none;
+      box-shadow: 0 0 8px rgba(3, 169, 244, 0.2);
+    }
+
+    .form-container button {
+      padding: 12px 25px;
+      background: #03a9f4; /* Lighter blue */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: transform 0.2s ease, background-color 0.3s ease;
+    }
+
+    .form-container button:hover {
+      transform: scale(1.05);
+      background-color: #0288d1;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-size: 1rem;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .feedback.error {
+      color: #b71c1c;
+      background: #ffebee;
+    }
+
+    .feedback.success {
+      color: #1b5e20;
+      background: #e8f5e9;
+    }
+
+    /* Timeline Section */
+    .timeline {
+      position: relative;
+      width: 100%;
+      padding-left: 50px;
+      height: 300px;
+      overflow: auto;
+    }
+
+    .timeline-item {
+      position: absolute;
+      left: 0;
+      width: 200px;
+      background-color: #e1f5fe; /* Lighter blue */
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: -20px;
+      width: 10px;
+      height: 10px;
+      background-color: #0288d1;
+      border-radius: 50%;
+      transform: translateY(-50%);
+    }
+
+    .delete-button, .edit-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #d32f2f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .delete-button:hover, .edit-button:hover {
+      background-color: #b71c1c;
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay"></div>
+
+  <!-- Header -->
+  <header>
+    <h1>Interactive Timeline</h1>
+    <nav>
+      <ul>
+        <li><a href="#" onclick="showPage('form-container')">Home</a></li>
+        <li><a href="#" onclick="showPage('about-container')">About</a></li>
+        <li><a href="#" onclick="showPage('timeline-container')">Timeline</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Home (Form) -->
+  <div class="container form-container" id="form-container">
+    <h1>Build Your Timeline</h1>
+    <p>Add events to your timeline below!</p>
+    <input type="text" id="eventTitle" placeholder="Event Title" required>
+    <textarea id="eventDescription" placeholder="Event Description" rows="4" required></textarea>
+    <input type="date" id="eventDate" required>
+    <input type="time" id="eventTime" required>
+    <select id="eventCategory" required>
+      <option value="">Select Category</option>
+      <option value="Work">Work</option>
+      <option value="Personal">Personal</option>
+      <option value="Travel">Travel</option>
+    </select>
+    <button onclick="addEvent()">Add Event</button>
+    <div id="feedback" class="feedback hidden"></div>
+  </div>
+
+  <!-- About -->
+  <div class="container about-container hidden" id="about-container">
+    <h2>About This App</h2>
+    <p>This interactive timeline builder allows you to create a personalized timeline of events. Add your events, view them in an organized timeline, and manage your data with ease.</p>
+  </div>
+
+  <!-- Timeline -->
+  <div class="container timeline-container hidden" id="timeline-container">
+    <h1>Your Timeline</h1>
+    <input type="text" id="searchInput" placeholder="Search events..." oninput="filterEvents()">
+    <select id="categoryFilter" onchange="filterEvents()">
+      <option value="">All Categories</option>
+      <option value="Work">Work</option>
+      <option value="Personal">Personal</option>
+      <option value="Travel">Travel</option>
+    </select>
+    <ul class="timeline" id="timeline"></ul>
+    <button onclick="showPage('form-container')">Back to Add Events</button>
+  </div>
+
+  <script>
+    function showPage(pageId) {
+      document.querySelectorAll('.container').forEach(container => container.classList.add('hidden'));
+      document.getElementById(pageId).classList.remove('hidden');
+
+      if (pageId === 'timeline-container') {
+        viewTimeline();
+      }
+    }
+
+    function addEvent() {
+      const title = document.getElementById('eventTitle').value.trim();
+      const description = document.getElementById('eventDescription').value.trim();
+      const date = document.getElementById('eventDate').value;
+      const time = document.getElementById('eventTime').value;
+      const category = document.getElementById('eventCategory').value;
+      const feedback = document.getElementById('feedback');
+
+      if (!title || !description || !date || !time || !category) {
+        feedback.textContent = "All fields are required!";
+        feedback.className = "feedback error";
+        feedback.classList.remove("hidden");
+        return;
+      }
+
+      const events = JSON.parse(localStorage.getItem('timelineEvents')) || [];
+      if (events.some(event => event.title === title)) {
+        feedback.textContent = "Event title already exists!";
+        feedback.className = "feedback error";
+        feedback.classList.remove("hidden");
+        return;
+      }
+
+      events.push({ title, description, date, time, category, timeAdded: new Date().toISOString() });
+      localStorage.setItem('timelineEvents', JSON.stringify(events));
+
+      feedback.textContent = "Event added successfully!";
+      feedback.className = "feedback success";
+      feedback.classList.remove("hidden");
+
+      document.getElementById('eventTitle').value = '';
+      document.getElementById('eventDescription').value = '';
+      document.getElementById('eventDate').value = '';
+      document.getElementById('eventTime').value = '';
+      document.getElementById('eventCategory').value = '';
+    }
+
+    function viewTimeline() {
+      const timeline = document.getElementById('timeline');
+      const events = JSON.parse(localStorage.getItem('timelineEvents')) || [];
+      timeline.innerHTML = ''; // Clear previous content
+
+      if (events.length === 0) {
+        timeline.innerHTML = '<p>No events added yet!</p>';
+        return;
+      }
+
+      events.forEach((event, index) => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('timeline-item');
+        listItem.style.top = `${index * 100}px`; // Adjust the spacing
+        listItem.innerHTML = `
+          <h3>${event.title}</h3>
+          <p>${event.description}</p>
+          <p><strong>Category:</strong> ${event.category}</p>
+          <p><strong>Date:</strong> ${event.date} <strong>Time:</strong> ${event.time}</p>
+          <button class="edit-button" onclick="editEvent(${index})">Edit</button>
+          <button class="delete-button" onclick="deleteEvent(${index})">Delete</button>
+        `;
+        timeline.appendChild(listItem);
+      });
+    }
+
+    function deleteEvent(index) {
+      const events = JSON.parse(localStorage.getItem('timelineEvents')) || [];
+      events.splice(index, 1);
+      localStorage.setItem('timelineEvents', JSON.stringify(events));
+      viewTimeline();
+    }
+
+    function editEvent(index) {
+      const events = JSON.parse(localStorage.getItem('timelineEvents')) || [];
+      const event = events[index];
+
+      document.getElementById('eventTitle').value = event.title;
+      document.getElementById('eventDescription').value = event.description;
+      document.getElementById('eventDate').value = event.date;
+      document.getElementById('eventTime').value = event.time;
+      document.getElementById('eventCategory').value = event.category;
+
+      const button = document.querySelector('.form-container button');
+      button.textContent = 'Save Changes';
+      button.onclick = function() {
+        saveChanges(index);
+      };
+    }
+
+    function saveChanges(index) {
+      const title = document.getElementById('eventTitle').value.trim();
+      const description = document.getElementById('eventDescription').value.trim();
+      const date = document.getElementById('eventDate').value;
+      const time = document.getElementById('eventTime').value;
+      const category = document.getElementById('eventCategory').value;
+
+      const events = JSON.parse(localStorage.getItem('timelineEvents')) || [];
+      events[index] = { title, description, date, time, category, timeAdded: events[index].timeAdded };
+      localStorage.setItem('timelineEvents', JSON.stringify(events));
+
+      document.querySelector('.form-container button').textContent = 'Add Event';
+      document.querySelector('.form-container button').onclick = addEvent;
+      viewTimeline();
+    }
+
+    function filterEvents() {
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      const events = JSON.parse(localStorage.getItem('timelineEvents')) || [];
+      const filteredEvents = events.filter(event => {
+        const matchesSearch = event.title.toLowerCase().includes(searchInput) || event.description.toLowerCase().includes(searchInput);
+        const matchesCategory = categoryFilter ? event.category === categoryFilter : true;
+        return matchesSearch && matchesCategory;
+      });
+      displayFilteredTimeline(filteredEvents);
+    }
+
+    function displayFilteredTimeline(events) {
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = '';
+      events.forEach((event, index) => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('timeline-item');
+        listItem.style.top = `${index * 100}px`;
+        listItem.innerHTML = `
+          <h3>${event.title}</h3>
+          <p>${event.description}</p>
+          <p><strong>Category:</strong> ${event.category}</p>
+          <p><strong>Date:</strong> ${event.date} <strong>Time:</strong> ${event.time}</p>
+          <button class="edit-button" onclick="editEvent(${index})">Edit</button>
+          <button class="delete-button" onclick="deleteEvent(${index})">Delete</button>
+        `;
+        timeline.appendChild(listItem);
+      });
+    }
+  </script>
+
+</body>
+</html>
+
+
